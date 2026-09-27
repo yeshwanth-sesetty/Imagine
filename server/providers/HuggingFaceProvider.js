@@ -104,7 +104,24 @@ export class HuggingFaceProvider extends VideoProvider {
   }
 
   /** Shared Gradio job runner: connect → fit params → submit → stream status → fetch output inline. */
-  async *#runSpace({ space, endpoint, params, signal, findOutput, what }) {
+  // Bare crashes like "RuntimeError" are usually transient on busy ZeroGPU Spaces
+  // (worker restarted, GPU slot lost, cold start). Retry once automatically.
+  async *#runSpace(opts) {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        for await (const ev of this.#runSpaceOnce(opts)) {
+          if (attempt > 1 && ev.type === 'accepted') yield { type: 'retrying', attempt };
+          yield ev;
+        }
+        return;
+      } catch (err) {
+        if (attempt < 2 && err?.transient && !opts.signal?.aborted) continue;
+        throw err;
+      }
+    }
+  }
+
+  async *#runSpaceOnce({ space, endpoint, params, signal, findOutput, what }) {
     let client;
     try {
       client = await Client.connect(space, this.#connectOptions());
@@ -329,5 +346,13 @@ function mapRunError(err) {
   if (/no gpu|gpu.*(unavailable|not available)|timed? ?out/i.test(msg)) return new StudioError('PROVIDER_UNAVAILABLE', `Hugging Face: ${msg}`);
   if (/nsfw|safety|unsafe/i.test(msg)) return new StudioError('CONTENT_MODERATION', `Hugging Face: ${msg}`);
   if (/connection|network|ECONN|fetch failed/i.test(msg)) return new StudioError('NETWORK', `Lost connection to the Hugging Face Space: ${msg}`);
+  if (/^\s*(\w*Error|Exception)?\s*$/.test(msg)) {
+    const e = new StudioError(
+      'GENERATION_FAILED',
+      `The Hugging Face Space crashed while generating (it only reported “${msg.trim() || 'an error'}”, with no details). This is on the Space's side — usually a busy or restarting GPU worker — not a problem with your photo or settings. The studio already retried once automatically. Try again in a minute, or pick another model.`
+    );
+    e.transient = true;
+    return e;
+  }
   return new StudioError('GENERATION_FAILED', `Hugging Face Space error: ${msg}`);
 }
