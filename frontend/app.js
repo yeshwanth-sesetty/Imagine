@@ -1101,6 +1101,8 @@ async function runGeneration(gen, img, hooks = {}) {
       } else if (ev.type === 'started') {
         set({ status: 'running' });
         step('render', 'active', 'GPU allocated — the model is running');
+      } else if (ev.type === 'retrying') {
+        step('send', 'active', 'The Space crashed — retrying once automatically…');
       } else if (ev.type === 'saving') {
         hooks.progressDone?.();
         step('final', 'active', 'Receiving the video from the Space');
