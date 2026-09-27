@@ -352,7 +352,8 @@ async function generate({ variation = false } = {}) {
           $('#iProgWrap').hidden = false;
           $('#iBar').style.width = `${Math.round(ev.progress * 100)}%`;
           $('#iPct').textContent = `${Math.round(ev.progress * 100)}%`;
-        } else if (ev.type === 'saving') stepSet('final', 'active', 'Receiving the image from the Space');
+        } else if (ev.type === 'retrying') stepSet('send', 'active', 'The Space crashed — retrying once automatically…');
+        else if (ev.type === 'saving') stepSet('final', 'active', 'Receiving the image from the Space');
       },
     });
     let blob = r.blob;
