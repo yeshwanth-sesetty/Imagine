@@ -117,7 +117,7 @@ export function getImageCapabilities(providerId, modelId) {
 export function validateImageJob(body) {
   if (!body || typeof body !== 'object') throw new StudioError('INVALID_REQUEST', 'Request body must be JSON.');
   const providerId = body.provider || 'huggingface';
-  const modelId = body.model || 'qwen-edit-fast';
+  const modelId = body.model || 'flux-kontext';
   const caps = getImageCapabilities(providerId, modelId);
   const mode = body.mode === 'create' ? 'create' : 'edit';
   if (!caps.modes.includes(mode)) {
