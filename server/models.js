@@ -292,19 +292,6 @@ const MODELS = {
       "label": "Hugging Face (free)",
       "free": true,
       "models": {
-        "qwen-edit-fast": {
-          "label": "Qwen Image Edit 2511 · Free",
-          "quality": "Best at keeping faces & identity · 4-step fast",
-          "description": "Alibaba's open Qwen-Image-Edit-2511 (Lightning 4-step) on the Space linoyts/Qwen-Image-Edit-2511-Fast. Strong subject and face consistency; accepts up to 3 reference images.",
-          "modes": ["edit"],
-          "maxImages": 3,
-          "space": "linoyts/Qwen-Image-Edit-2511-Fast",
-          "endpoint": "/infer",
-          "params": { "image": "images", "imageIsGallery": true, "prompt": "prompt", "seed": "seed", "randomize": "randomize_seed", "fixed": { "true_guidance_scale": 1.0, "num_inference_steps": 4, "rewrite_prompt": false } },
-          "gpu": "light",
-          "reserveSeconds": 60,
-          "promptMaxChars": 1000
-        },
         "flux-kontext": {
           "label": "FLUX.1 Kontext [dev] · Free",
           "quality": "High-quality edits & text-to-image · slower",
@@ -315,6 +302,32 @@ const MODELS = {
           "endpoint": "/infer",
           "params": { "image": "input_image", "prompt": "prompt", "seed": "seed", "randomize": "randomize_seed", "fixed": { "guidance_scale": 2.5, "steps": 28 } },
           "gpu": "heavy",
+          "reserveSeconds": 60,
+          "promptMaxChars": 1000
+        },
+        "qwen-edit": {
+          "label": "Qwen Image Edit · Free",
+          "quality": "Strong identity preservation · 8-step fast",
+          "description": "Alibaba's open Qwen-Image-Edit with the Lightning 8-step LoRA on the Space multimodalart/Qwen-Image-Edit-Fast. Very good at keeping the same person while changing background, clothes or lighting.",
+          "modes": ["edit"],
+          "maxImages": 1,
+          "space": "multimodalart/Qwen-Image-Edit-Fast",
+          "endpoint": "/infer",
+          "params": { "image": "image", "prompt": "prompt", "seed": "seed", "randomize": "randomize_seed", "fixed": { "true_guidance_scale": 1.0, "num_inference_steps": 8, "rewrite_prompt": false } },
+          "gpu": "light",
+          "reserveSeconds": 60,
+          "promptMaxChars": 1000
+        },
+        "qwen-edit-fast": {
+          "label": "Qwen Image Edit 2511 · Free (experimental)",
+          "quality": "Newest Qwen · multi-photo · Space sometimes crashes",
+          "description": "Alibaba's open Qwen-Image-Edit-2511 (Lightning 4-step) on the Space linoyts/Qwen-Image-Edit-2511-Fast. Strong subject and face consistency; accepts up to 3 reference images.",
+          "modes": ["edit"],
+          "maxImages": 3,
+          "space": "linoyts/Qwen-Image-Edit-2511-Fast",
+          "endpoint": "/infer",
+          "params": { "image": "images", "imageIsGallery": true, "prompt": "prompt", "seed": "seed", "randomize": "randomize_seed", "fixed": { "true_guidance_scale": 1.0, "num_inference_steps": 4, "rewrite_prompt": false } },
+          "gpu": "light",
           "reserveSeconds": 60,
           "promptMaxChars": 1000
         },
