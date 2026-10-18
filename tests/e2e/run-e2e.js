@@ -284,7 +284,7 @@ try {
   gp.on('pageerror', (e) => gpErrors.push(e.message));
   await gp.goto('http://127.0.0.1:8788/frontend/index.html');
   await gp.waitForFunction(() => document.querySelector('#backendStatus').dataset.state === 'err');
-  check('Pages-style static hosting loads (sub-path, offline catalog)', gpErrors.length === 0 && (await gp.locator('#modelCards .model').count()) === 6, gpErrors.join(' | '));
+  check('Pages-style static hosting loads (sub-path, offline catalog)', gpErrors.length === 0 && (await gp.locator('#modelCards .model').count()) === 7, gpErrors.join(' | '));
   await gp.click('[data-nav="settings"]');
   await gp.fill('#apiBase', 'http://127.0.0.1:8787');
   await gp.click('#saveBackend');

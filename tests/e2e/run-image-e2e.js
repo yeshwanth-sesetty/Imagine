@@ -29,10 +29,11 @@ await Promise.all([
   start('python3', ['-u', 'tests/e2e/fake_image_space.py'], { MODE: 'qwen', PORT: '7871' }, 'Running on local URL'),
   start('python3', ['-u', 'tests/e2e/fake_image_space.py'], { MODE: 'kontext', PORT: '7872' }, 'Running on local URL'),
   start('python3', ['-u', 'tests/e2e/fake_image_space.py'], { MODE: 'schnell', PORT: '7873' }, 'Running on local URL'),
+  start('python3', ['-u', 'tests/e2e/fake_image_space.py'], { MODE: 'qwen1', PORT: '7874' }, 'Running on local URL'),
 ]);
 await start('node', ['dev-server.js'], {
   PORT: '8787', HF_TOKEN: 'hf_test_local', HF_ASSISTANT: 'off',
-  HF_SPACE_OVERRIDES: JSON.stringify({ 'qwen-edit-fast': 'http://127.0.0.1:7871/', 'flux-kontext': 'http://127.0.0.1:7872/', 'flux-schnell': 'http://127.0.0.1:7873/' }),
+  HF_SPACE_OVERRIDES: JSON.stringify({ 'qwen-edit-fast': 'http://127.0.0.1:7871/', 'flux-kontext': 'http://127.0.0.1:7872/', 'flux-schnell': 'http://127.0.0.1:7873/', 'qwen-edit': 'http://127.0.0.1:7874/' }),
 }, 'Cinematic AI Studio');
 
 const results = [];
@@ -48,12 +49,13 @@ const lastToast = async () => (await page.locator('.toast').last().innerText().c
 try {
   await page.goto('http://127.0.0.1:8787/#image');
   await page.waitForSelector('#iModels .model');
-  check('Image Studio opens with free edit models', (await page.locator('#iModels .model').count()) === 2, await page.locator('#iModels').innerText());
+  check('Image Studio opens with free edit models', (await page.locator('#iModels .model').count()) === 3, await page.locator('#iModels').innerText());
   check('Identity locks on by default', await page.locator('[data-ilock="face"]').evaluate((e) => e.classList.contains('on')));
 
   // Edit flow (Qwen, gallery input)
   await page.setInputFiles('#iFileInput', path.join(FIX, 'portrait.jpg'));
   await page.waitForSelector('#istage[data-state="preview"]');
+  await page.click('[data-imodel="qwen-edit-fast"]');
   await page.click('[data-ipreset="bg"]');
   check('Preset fills instruction and unlocks background', /background/i.test(await page.inputValue('#iPrompt')) && !(await page.locator('[data-ilock="background"]').evaluate((e) => e.classList.contains('on'))));
   await page.fill('#iPrompt', 'Change the background to a sunny beach');
@@ -84,6 +86,16 @@ try {
   await page.waitForSelector('#iGenError:not([hidden])', { timeout: 30000 });
   check('Quota error surfaced honestly', /free daily GPU allowance/.test(await page.locator('#iErrTitle').innerText()));
   await page.click('#iBack');
+  await page.click('[data-imodel="qwen-edit"]');
+  await page.fill('#iPrompt', 'Change the shirt to red');
+  await page.click('#iGenerate');
+  await page.waitForSelector('#istage[data-state="result"]', { timeout: 40000 });
+  check('Qwen Image Edit (single-image Space) works', /Qwen Image Edit · Free/.test(await page.locator('#iMeta').innerText()));
+  await page.fill('#iPrompt', 'BROKEN test');
+  await page.click('#iGenerate');
+  await page.waitForSelector('#iGenError:not([hidden])', { timeout: 30000 });
+  check('Crash offers “Try with another model”', await page.locator('#iSwitch').isVisible(), await page.locator('#iSwitch').innerText());
+  await page.click('#iBack');
 
   // Create from text (schnell, aspect)
   await page.click('[data-imode="create"]');
@@ -95,7 +107,7 @@ try {
   await page.waitForSelector('#istage[data-state="result"]', { timeout: 40000 });
   const dims = await page.evaluate(() => [document.querySelector('#iAfter').naturalWidth, document.querySelector('#iAfter').naturalHeight]);
   check('Text-to-image at 16:9 (1344×768)', dims[0] === 1344 && dims[1] === 768, dims.join('×'));
-  check('History keeps all images', (await page.locator('#iGrid button').count()) === 3);
+  check('History keeps all images', (await page.locator('#iGrid button').count()) === 4);
 
   // Send to video
   await page.click('#iAnimate');

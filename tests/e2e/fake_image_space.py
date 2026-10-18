@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 MODE = os.environ.get("MODE", "qwen")
 MAX_SEED = 2**31 - 1
+FLAKY = {"n": 0}
 
 
 def fake_edit(img, prompt, steps):
@@ -18,6 +19,11 @@ def fake_edit(img, prompt, steps):
         raise gr.Error("You have exceeded your free GPU quota (20s requested vs. 3s left). Try again in 1:02:03")
     if "CRASH" in (prompt or ""):
         raise gr.Error("CUDA out of memory.")
+    if "FLAKY" in (prompt or "") and FLAKY["n"] == 0:
+        FLAKY["n"] += 1
+        raise gr.Error("RuntimeError")  # ZeroGPU surfaces crashed workers as a bare "RuntimeError"
+    if "BROKEN" in (prompt or ""):
+        raise gr.Error("RuntimeError")
     for _ in tqdm(range(int(steps)), desc="Denoising"):
         time.sleep(0.4)
     out = ImageOps.autocontrast(img.convert("RGB"))
@@ -62,6 +68,21 @@ with gr.Blocks() as demo:
         run = gr.Button("Edit!")
         run.click(infer, [input_images, prompt, seed, randomize_seed, true_guidance_scale, num_inference_steps, height, width, rewrite_prompt],
                   [result, seed, use_output_btn], concurrency_limit=1)
+    elif MODE == "qwen1":  # multimodalart/Qwen-Image-Edit-Fast: single gr.Image input
+        def infer(image, prompt, seed=42, randomize_seed=False, true_guidance_scale=1.0, num_inference_steps=8, rewrite_prompt=True, progress=gr.Progress(track_tqdm=True)):
+            used = random.randint(0, MAX_SEED) if randomize_seed else int(seed)
+            return fake_edit(image, prompt, num_inference_steps), used
+
+        input_image = gr.Image(label="Input Image", type="pil")
+        prompt = gr.Textbox(label="Prompt")
+        seed = gr.Slider(0, MAX_SEED, value=0, step=1, label="Seed")
+        randomize_seed = gr.Checkbox(value=True, label="Randomize seed")
+        true_guidance_scale = gr.Slider(1.0, 10.0, value=1.0, step=0.1, label="True guidance scale")
+        num_inference_steps = gr.Slider(1, 40, value=8, step=1, label="Steps")
+        rewrite_prompt = gr.Checkbox(value=True, label="Rewrite prompt")
+        result = gr.Image(label="Result")
+        run = gr.Button("Edit!")
+        run.click(infer, [input_image, prompt, seed, randomize_seed, true_guidance_scale, num_inference_steps, rewrite_prompt], [result, seed], concurrency_limit=1)
     elif MODE == "kontext":
         def infer(input_image, prompt, seed=42, randomize_seed=False, guidance_scale=2.5, steps=28, progress=gr.Progress(track_tqdm=True)):
             used = random.randint(0, MAX_SEED) if randomize_seed else int(seed)
