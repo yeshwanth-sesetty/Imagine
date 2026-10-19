@@ -37,7 +37,7 @@ const MODELS = {
             "steps": "steps",
             "seed": "seed",
             "randomize": "randomize_seed",
-            "baseNegative": "色调艳丽, 过曝, 静态, 细节模糊不清, 字幕, 最差质量, 低质量, JPEG压缩残留, 畸形的, 多余的手指, 静止不动的画面",
+            "baseNegative": "色调艳丽, 过曝, 静态, 细节模糊不清, 字幕, 最差质量, 低质量, JPEG压缩残留, 畸形的, 多余的手指, 静止不动的画面, 慢动作, 重影, 残影, 双重曝光, 运动拖影, 画面闪烁",
             "fixed": {
               "guidance_scale": 1,
               "guidance_scale_2": 1
@@ -141,7 +141,7 @@ const MODELS = {
             "seed": "seed",
             "randomize": "randomize_seed",
             "frameMultiplier": "frame_multiplier",
-            "baseNegative": "色调艳丽, 过曝, 静态, 细节模糊不清, 字幕, 最差质量, 低质量, JPEG压缩残留, 畸形的, 多余的手指, 静止不动的画面",
+            "baseNegative": "色调艳丽, 过曝, 静态, 细节模糊不清, 字幕, 最差质量, 低质量, JPEG压缩残留, 畸形的, 多余的手指, 静止不动的画面, 慢动作, 重影, 残影, 双重曝光, 运动拖影, 画面闪烁",
             "fixed": {
               "guidance_scale": 1,
               "guidance_scale_2": 1,
@@ -226,7 +226,7 @@ const MODELS = {
             {
               "value": 32,
               "label": "32 fps",
-              "note": "RIFE-interpolated in the Space (in-between frames are synthesized, not new AI motion)",
+              "note": "RIFE-interpolated in the Space: in-between frames are synthesized (not new AI motion) and can show ghosting on fast movement, faces and hair. Use 16 fps for the cleanest result",
               "multiplier": 32,
               "interpolated": true
             }
@@ -354,6 +354,146 @@ const MODELS = {
             "seconds": 75
           },
           "creditsNote": "Free. Each run reserves 75 s of your daily ZeroGPU allowance (fixed in the Space's code); only the GPU time actually used is deducted."
+        }
+      }
+    },
+    "modal": {
+      "label": "Modal (your free monthly credits)",
+      "free": true,
+      "mode": "poll",
+      "pollIntervalMs": 4000,
+      "downloadFirst": true,
+      "docs": "https://modal.com/pricing",
+      "pricingSource": "https://modal.com/pricing",
+      "quota": {
+        "monthlyUsd": 30,
+        "note": "Modal Starter plan: US$30 of compute credits every month (modal.com/pricing, checked 2026-10-19). Set the workspace spend limit to $0 so nothing is ever billed."
+      },
+      "models": {
+        "wan2.2-modal": {
+          "label": "Wan 2.2 14B · Your Modal GPU",
+          "quality": "Same Wan 2.2 · no daily cap · 480p or 720p · end frame",
+          "description": "The open Wan 2.2 14B image-to-video model (Apache-2.0, Lightning LoRA) running on YOUR Modal account (modal/wan_app.py). No shared queue and no 5-minute daily cap — it uses Modal's monthly free credits instead. Adds an optional end frame and a 720p option.",
+          "license": "Apache-2.0",
+          "modes": [
+            "i2v"
+          ],
+          "qualityPresets": [
+            {
+              "id": "fast",
+              "label": "Fast",
+              "steps": 4,
+              "note": "4 steps — what the Lightning LoRA is distilled for"
+            },
+            {
+              "id": "balanced",
+              "label": "Balanced",
+              "steps": 6,
+              "note": "6 steps"
+            },
+            {
+              "id": "max",
+              "label": "Max detail",
+              "steps": 8,
+              "note": "8 steps · ~2× GPU time of Fast"
+            }
+          ],
+          "defaultQuality": "fast",
+          "durations": {
+            "min": 1,
+            "max": 5,
+            "presets": [
+              3,
+              5
+            ]
+          },
+          "ratios": [
+            {
+              "value": "832:480",
+              "aspect": "16:9",
+              "resolution": "480p"
+            },
+            {
+              "value": "480:832",
+              "aspect": "9:16",
+              "resolution": "480p"
+            },
+            {
+              "value": "640:640",
+              "aspect": "1:1",
+              "resolution": "480p"
+            },
+            {
+              "value": "672:832",
+              "aspect": "4:5",
+              "resolution": "480p"
+            },
+            {
+              "value": "832:624",
+              "aspect": "4:3",
+              "resolution": "480p"
+            },
+            {
+              "value": "624:832",
+              "aspect": "3:4",
+              "resolution": "480p"
+            },
+            {
+              "value": "1280:720",
+              "aspect": "16:9",
+              "resolution": "720p",
+              "note": "Lightning LoRA is tuned for 480p; 720p is sharper but may show more artefacts"
+            },
+            {
+              "value": "720:1280",
+              "aspect": "9:16",
+              "resolution": "720p"
+            },
+            {
+              "value": "992:992",
+              "aspect": "1:1",
+              "resolution": "720p"
+            },
+            {
+              "value": "1024:1280",
+              "aspect": "4:5",
+              "resolution": "720p"
+            },
+            {
+              "value": "1280:960",
+              "aspect": "4:3",
+              "resolution": "720p"
+            },
+            {
+              "value": "960:1280",
+              "aspect": "3:4",
+              "resolution": "720p"
+            }
+          ],
+          "fps": 16,
+          "fpsOptions": [
+            {
+              "value": 16,
+              "label": "16 fps",
+              "note": "native"
+            }
+          ],
+          "lastFrame": true,
+          "promptRequired": false,
+          "promptMaxChars": 1000,
+          "negativePrompt": true,
+          "audio": false,
+          "nativeAudio": false,
+          "seed": true,
+          "inputAspectRange": null,
+          "creditsPerSecond": null,
+          "free": true,
+          "costEstimate": {
+            "gpu": "H200",
+            "usdPerSecond": 0.001261,
+            "note": "Rough estimate, not measured: ≈US$0.08–0.15 per clip when the GPU is already warm, ≈US$0.30–0.45 for a clip that needs a cold start (loading the model) plus the idle wait before shutdown. US$30/month ≈ 70–250 clips."
+          },
+          "creditsNote": "Uses your Modal monthly free credits (US$30). With the spend limit at $0, jobs stop instead of being billed when they run out."
         }
       }
     },
